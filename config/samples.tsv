@@ -1,0 +1,5 @@
+sample	srr	condition	donor
+N61311_untreated	SRR1039508	control	N61311
+N61311_Alb	SRR1039510	albuterol	N61311
+N080611_untreated	SRR1039516	control	N080611
+N080611_Dex	SRR1039517	dexamethasone	N080611
