@@ -1,0 +1,21 @@
+# Mėginių lentelė (tab-separated: sample, srr, condition, donor)
+samples: "config/samples.tsv"
+
+# Įvesties FASTQ: {sample}_R1.fastq.gz ir {sample}_R2.fastq.gz šiame aplanke
+fastq_dir: "data/raw"
+
+# Rezultatų aplankas
+outdir: "results"
+
+# Referencija (paruošta prepare_reference.sh)
+reference:
+  genome: "resources/reference/GRCh38.primary_assembly.genome.fa"
+  gtf: "resources/reference/gencode.v50.primary_assembly.annotation.gtf"
+  transcripts: "resources/reference/gencode.v50.transcripts.fa"
+
+# Gijų skaičius
+threads:
+  fastp: 4
+  hisat2: 8
+  featurecounts: 4
+  kallisto: 4
