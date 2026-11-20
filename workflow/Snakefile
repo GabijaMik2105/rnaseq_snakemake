@@ -1,0 +1,53 @@
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+samples = pd.read_csv(config["samples"], sep="\t").set_index("sample", drop=False)
+SAMPLES = list(samples.index)
+FQ = config["fastq_dir"]
+OUT = config["outdir"]
+
+rule all:
+    input:
+        expand(OUT + "/fastqc_raw/{sample}_R{r}_fastqc.html", sample=SAMPLES, r=[1, 2]),
+        expand(OUT + "/trimmed/{sample}_R{r}.fastq.gz", sample=SAMPLES, r=[1, 2]),
+
+rule fastqc_raw:
+    input:
+        FQ + "/{sample}_R{r}.fastq.gz"
+    output:
+        html=OUT + "/fastqc_raw/{sample}_R{r}_fastqc.html",
+        zip=OUT + "/fastqc_raw/{sample}_R{r}_fastqc.zip"
+    params:
+        outdir=OUT + "/fastqc_raw"
+    threads: 2
+    resources:
+        mem_mb=2000,
+        runtime=60
+    conda:
+        "envs/qc.yaml"
+    log:
+        "logs/fastqc_raw/{sample}_R{r}.log"
+    shell:
+        "fastqc -t {threads} -o {params.outdir} {input} &> {log}"
+
+rule fastp:
+    input:
+        r1=FQ + "/{sample}_R1.fastq.gz",
+        r2=FQ + "/{sample}_R2.fastq.gz"
+    output:
+        r1=OUT + "/trimmed/{sample}_R1.fastq.gz",
+        r2=OUT + "/trimmed/{sample}_R2.fastq.gz",
+        json=OUT + "/fastp/{sample}.json",
+        html=OUT + "/fastp/{sample}.html"
+    threads: config["threads"]["fastp"]
+    resources:
+        mem_mb=4000,
+        runtime=120
+    conda:
+        "envs/fastp.yaml"
+    log:
+        "logs/fastp/{sample}.log"
+    shell:
+        "fastp -i {input.r1} -I {input.r2} -o {output.r1} -O {output.r2} "
+        "-j {output.json} -h {output.html} -w {threads} &> {log}"
