@@ -120,7 +120,6 @@ rule featurecounts:
         gtf=config["reference"]["gtf"]
     output:
         counts=OUT + "/featurecounts/counts.txt",
-        expand(OUT + "/kallisto/{sample}/abundance.tsv", sample=SAMPLES),
         summary=OUT + "/featurecounts/counts.txt.summary"
     params:
         strand=config.get("strandedness", 0)
