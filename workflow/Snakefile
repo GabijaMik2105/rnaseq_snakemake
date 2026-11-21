@@ -203,3 +203,53 @@ rule rseqc_bam_stat:
         "logs/rseqc_bam_stat/{sample}.log"
     shell:
         "bam_stat.py -i {input} > {output} 2> {log}"
+
+rule rseqc_infer_experiment:
+    input:
+        bam=OUT + "/hisat2/{sample}.sorted.bam",
+        bed=OUT + "/reference/genes.bed12"
+    output:
+        OUT + "/rseqc/{sample}.infer_experiment.txt"
+    resources:
+        mem_mb=4000,
+        runtime=120
+    conda:
+        "envs/rseqc.yaml"
+    log:
+        "logs/rseqc_infer_experiment/{sample}.log"
+    shell:
+        "infer_experiment.py -i {input.bam} -r {input.bed} > {output} 2> {log}"
+
+rule rseqc_read_distribution:
+    input:
+        bam=OUT + "/hisat2/{sample}.sorted.bam",
+        bed=OUT + "/reference/genes.bed12"
+    output:
+        OUT + "/rseqc/{sample}.read_distribution.txt"
+    resources:
+        mem_mb=8000,
+        runtime=120
+    conda:
+        "envs/rseqc.yaml"
+    log:
+        "logs/rseqc_read_distribution/{sample}.log"
+    shell:
+        "read_distribution.py -i {input.bam} -r {input.bed} > {output} 2> {log}"
+
+rule rseqc_inner_distance:
+    input:
+        bam=OUT + "/hisat2/{sample}.sorted.bam",
+        bed=OUT + "/reference/genes.bed12"
+    output:
+        OUT + "/rseqc/{sample}.inner_distance_freq.txt"
+    params:
+        prefix=OUT + "/rseqc/{sample}"
+    resources:
+        mem_mb=8000,
+        runtime=240
+    conda:
+        "envs/rseqc.yaml"
+    log:
+        "logs/rseqc_inner_distance/{sample}.log"
+    shell:
+        "inner_distance.py -i {input.bam} -r {input.bed} -o {params.prefix} &> {log}"
