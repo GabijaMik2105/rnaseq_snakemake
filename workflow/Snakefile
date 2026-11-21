@@ -345,6 +345,8 @@ rule multiqc:
         expand(OUT + "/rseqc/{sample}.read_distribution.txt", sample=SAMPLES),
         expand(OUT + "/rseqc/{sample}.inner_distance_freq.txt", sample=SAMPLES),
         expand(OUT + "/rseqc/{sample}.geneBodyCoverage.txt", sample=SAMPLES),
+        expand("logs/kallisto/{sample}.log", sample=SAMPLES),
+        "config/multiqc_config.yaml",
     output:
         OUT + "/multiqc/multiqc_report.html"
     params:
@@ -357,4 +359,4 @@ rule multiqc:
     log:
         "logs/multiqc.log"
     shell:
-        "multiqc -f -o {params.outdir} {OUT} logs/hisat2 &> {log}"
+        "multiqc -f -c config/multiqc_config.yaml -o {params.outdir} {OUT} logs/hisat2 logs/kallisto &> {log}"
