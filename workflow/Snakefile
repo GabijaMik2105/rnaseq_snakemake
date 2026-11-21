@@ -172,3 +172,34 @@ rule kallisto_quant:
     shell:
         "kallisto quant -i {input.index} -o {params.outdir} -t {threads} "
         "{input.r1} {input.r2} &> {log}"
+
+rule gtf_to_bed:
+    input:
+        config["reference"]["gtf"]
+    output:
+        OUT + "/reference/genes.bed12"
+    resources:
+        mem_mb=8000,
+        runtime=60
+    conda:
+        "envs/rseqc.yaml"
+    log:
+        "logs/gtf_to_bed.log"
+    shell:
+        "(gtfToGenePred -genePredExt {input} {output}.genepred && "
+        "genePredToBed {output}.genepred {output}) &> {log}"
+
+rule rseqc_bam_stat:
+    input:
+        OUT + "/hisat2/{sample}.sorted.bam"
+    output:
+        OUT + "/rseqc/{sample}.bam_stat.txt"
+    resources:
+        mem_mb=4000,
+        runtime=120
+    conda:
+        "envs/rseqc.yaml"
+    log:
+        "logs/rseqc_bam_stat/{sample}.log"
+    shell:
+        "bam_stat.py -i {input} > {output} 2> {log}"
