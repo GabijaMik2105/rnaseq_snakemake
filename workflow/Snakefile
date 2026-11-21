@@ -253,3 +253,31 @@ rule rseqc_inner_distance:
         "logs/rseqc_inner_distance/{sample}.log"
     shell:
         "inner_distance.py -i {input.bam} -r {input.bed} -o {params.prefix} &> {log}"
+
+rule bed_subset:
+    input:
+        OUT + "/reference/genes.bed12"
+    output:
+        OUT + "/reference/genes.subset.bed12"
+    params:
+        n=config.get("genebody_genes", 10000)
+    shell:
+        "shuf -n {params.n} --random-source=<(yes) {input} > {output}"
+
+rule rseqc_genebody_coverage:
+    input:
+        bam=OUT + "/hisat2/{sample}.sorted.bam",
+        bed=OUT + "/reference/genes.subset.bed12"
+    output:
+        OUT + "/rseqc/{sample}.geneBodyCoverage.txt"
+    params:
+        prefix=OUT + "/rseqc/{sample}"
+    resources:
+        mem_mb=8000,
+        runtime=240
+    conda:
+        "envs/rseqc.yaml"
+    log:
+        "logs/rseqc_genebody/{sample}.log"
+    shell:
+        "geneBody_coverage.py -i {input.bam} -r {input.bed} -o {params.prefix} &> {log}"
