@@ -1,0 +1,13 @@
+executor: slurm
+jobs: 8
+software-deployment-method: conda
+latency-wait: 60
+default-resources:
+  slurm_partition: main
+  mem_mb: 2000
+  runtime: 60
+rerun-triggers:
+  - mtime
+  - params
+  - input
+  - code
