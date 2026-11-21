@@ -281,3 +281,50 @@ rule rseqc_genebody_coverage:
         "logs/rseqc_genebody/{sample}.log"
     shell:
         "geneBody_coverage.py -i {input.bam} -r {input.bed} -o {params.prefix} &> {log}"
+
+rule multibamsummary:
+    input:
+        bams=expand(OUT + "/hisat2/{sample}.sorted.bam", sample=SAMPLES)
+    output:
+        OUT + "/deeptools/readCounts.npz"
+    threads: config["threads"]["featurecounts"]
+    resources:
+        mem_mb=8000,
+        runtime=120
+    conda:
+        "envs/deeptools.yaml"
+    log:
+        "logs/multibamsummary.log"
+    shell:
+        "multiBamSummary bins -b {input.bams} -p {threads} -o {output} &> {log}"
+
+rule plot_correlation:
+    input:
+        OUT + "/deeptools/readCounts.npz"
+    output:
+        OUT + "/deeptools/correlation_heatmap.png"
+    resources:
+        mem_mb=4000,
+        runtime=60
+    conda:
+        "envs/deeptools.yaml"
+    log:
+        "logs/plot_correlation.log"
+    shell:
+        "plotCorrelation -in {input} -c spearman -p heatmap --plotNumbers "
+        "-o {output} &> {log}"
+
+rule plot_pca:
+    input:
+        OUT + "/deeptools/readCounts.npz"
+    output:
+        OUT + "/deeptools/pca.png"
+    resources:
+        mem_mb=4000,
+        runtime=60
+    conda:
+        "envs/deeptools.yaml"
+    log:
+        "logs/plot_pca.log"
+    shell:
+        "plotPCA -in {input} -o {output} &> {log}"
