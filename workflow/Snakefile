@@ -14,6 +14,7 @@ rule all:
         expand(OUT + "/fastqc_trimmed/{sample}_R{r}_fastqc.html", sample=SAMPLES, r=[1, 2]),
         expand(OUT + "/hisat2/{sample}.sorted.bam.bai", sample=SAMPLES),
         OUT + "/featurecounts/counts.txt",
+        expand(OUT + "/kallisto/{sample}/abundance.tsv", sample=SAMPLES),
 
 rule fastqc_raw:
     input:
@@ -119,6 +120,7 @@ rule featurecounts:
         gtf=config["reference"]["gtf"]
     output:
         counts=OUT + "/featurecounts/counts.txt",
+        expand(OUT + "/kallisto/{sample}/abundance.tsv", sample=SAMPLES),
         summary=OUT + "/featurecounts/counts.txt.summary"
     params:
         strand=config.get("strandedness", 0)
@@ -133,3 +135,41 @@ rule featurecounts:
     shell:
         "featureCounts -T {threads} -p --countReadPairs -B -C -s {params.strand} "
         "-a {input.gtf} -o {output.counts} {input.bams} &> {log}"
+
+rule kallisto_index:
+    input:
+        config["reference"]["transcripts"]
+    output:
+        OUT + "/index/kallisto/transcripts.idx"
+    resources:
+        mem_mb=16000,
+        runtime=120
+    conda:
+        "envs/kallisto.yaml"
+    log:
+        "logs/kallisto_index.log"
+    shell:
+        "kallisto index -i {output} {input} &> {log}"
+
+rule kallisto_quant:
+    input:
+        r1=OUT + "/trimmed/{sample}_R1.fastq.gz",
+        r2=OUT + "/trimmed/{sample}_R2.fastq.gz",
+        index=OUT + "/index/kallisto/transcripts.idx"
+    output:
+        OUT + "/kallisto/{sample}/abundance.tsv",
+        OUT + "/kallisto/{sample}/abundance.h5",
+        OUT + "/kallisto/{sample}/run_info.json"
+    params:
+        outdir=OUT + "/kallisto/{sample}"
+    threads: config["threads"]["kallisto"]
+    resources:
+        mem_mb=8000,
+        runtime=120
+    conda:
+        "envs/kallisto.yaml"
+    log:
+        "logs/kallisto/{sample}.log"
+    shell:
+        "kallisto quant -i {input.index} -o {params.outdir} -t {threads} "
+        "{input.r1} {input.r2} &> {log}"
