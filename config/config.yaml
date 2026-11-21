@@ -19,3 +19,6 @@ threads:
   hisat2: 8
   featurecounts: 4
   kallisto: 4
+
+# Bibliotekos strandedness (0 = nestrandinė, 1 = stranded, 2 = reversely stranded); patvirtinta RSeQC infer_experiment
+strandedness: 0
