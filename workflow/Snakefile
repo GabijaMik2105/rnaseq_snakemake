@@ -141,8 +141,8 @@ rule kallisto_index:
     output:
         OUT + "/index/kallisto/transcripts.idx"
     resources:
-        mem_mb=16000,
-        runtime=120
+        mem_mb=48000,
+        runtime=240
     conda:
         "envs/kallisto.yaml"
     log:
