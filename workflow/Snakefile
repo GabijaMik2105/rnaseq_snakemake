@@ -15,6 +15,9 @@ rule all:
         expand(OUT + "/hisat2/{sample}.sorted.bam.bai", sample=SAMPLES),
         OUT + "/featurecounts/counts.txt",
         expand(OUT + "/kallisto/{sample}/abundance.tsv", sample=SAMPLES),
+        OUT + "/multiqc/multiqc_report.html",
+        OUT + "/deeptools/correlation_heatmap.png",
+        OUT + "/deeptools/pca.png",
 
 rule fastqc_raw:
     input:
@@ -328,3 +331,30 @@ rule plot_pca:
         "logs/plot_pca.log"
     shell:
         "plotPCA -in {input} -o {output} &> {log}"
+
+rule multiqc:
+    input:
+        expand(OUT + "/fastqc_raw/{sample}_R{r}_fastqc.zip", sample=SAMPLES, r=[1, 2]),
+        expand(OUT + "/fastqc_trimmed/{sample}_R{r}_fastqc.zip", sample=SAMPLES, r=[1, 2]),
+        expand(OUT + "/fastp/{sample}.json", sample=SAMPLES),
+        expand("logs/hisat2/{sample}.log", sample=SAMPLES),
+        OUT + "/featurecounts/counts.txt.summary",
+        expand(OUT + "/kallisto/{sample}/run_info.json", sample=SAMPLES),
+        expand(OUT + "/rseqc/{sample}.bam_stat.txt", sample=SAMPLES),
+        expand(OUT + "/rseqc/{sample}.infer_experiment.txt", sample=SAMPLES),
+        expand(OUT + "/rseqc/{sample}.read_distribution.txt", sample=SAMPLES),
+        expand(OUT + "/rseqc/{sample}.inner_distance_freq.txt", sample=SAMPLES),
+        expand(OUT + "/rseqc/{sample}.geneBodyCoverage.txt", sample=SAMPLES),
+    output:
+        OUT + "/multiqc/multiqc_report.html"
+    params:
+        outdir=OUT + "/multiqc"
+    resources:
+        mem_mb=4000,
+        runtime=60
+    conda:
+        "envs/multiqc.yaml"
+    log:
+        "logs/multiqc.log"
+    shell:
+        "multiqc -f -o {params.outdir} {OUT} logs/hisat2 &> {log}"
