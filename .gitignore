@@ -1,7 +1,8 @@
 data/
 resources/
 results/
-logs/
+logs/*
+!logs/.gitkeep
 .snakemake/
 *.bam
 *.bai
